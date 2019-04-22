@@ -1,3 +1,2 @@
-import test from './modules/test';
-
-// test();
+import NavWatcher from './modules/nav-watcher';
+window.navWatcher = new NavWatcher();

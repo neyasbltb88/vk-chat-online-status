@@ -89,7 +89,7 @@ function html() {
 }
 
 
-gulp.task('watch', ['build', 'browser_sync'], function() {
+gulp.task('watch', ['setDev', 'build', 'browser_sync'], function() {
     livereload.listen()
 
     gulp.watch(html_files, ['html'])
@@ -110,11 +110,19 @@ function removedist() {
     } catch (err) {}
 }
 
+function setDev() {
+    isDev = true
+    isProd = false
+    webpack_config.mode = isDev ? 'development' : 'production'
+    webpack_config.devtool = isDev ? 'eval-source-map' : 'none'
+}
+
 
 gulp.task('browser_sync', browser_sync)
 gulp.task('js', js)
 gulp.task('html', html)
 gulp.task('removedist', removedist)
+gulp.task('setDev', setDev)
 
 
 gulp.task('default', ['watch'])
