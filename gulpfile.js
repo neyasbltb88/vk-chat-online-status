@@ -19,6 +19,7 @@ function emit_end(err) {
 /* === Файлы проекта === */
 
 const conf = {
+    src: './app',
     dest: './build'
 }
 
@@ -27,8 +28,8 @@ const html_files = [
 ]
 
 const js_files = [
-    './app/js/**/*.js',
-    '!./app/js/**/*.map'
+    './app/scripts/**/*.js',
+    '!./app/scripts/**/*.map'
 ]
 
 var isDev = false // Прод
@@ -69,21 +70,21 @@ function browser_sync() {
 }
 
 function js() {
-    return gulp.src('./app/js/app.js')
+    return gulp.src(conf.src + '/scripts/app.js')
         .pipe(webpack(webpack_config).on("error", notify.onError(function(error) {
             return "Error webpack: " + error.message;
         })).on('error', emit_end))
         .pipe(gulpif(isDev, sourcemaps.init({ loadMaps: true })))
-        .pipe(gulp.dest(conf.dest + '/js'))
-        .pipe(gulpif(isDev, sourcemaps.write(conf.dest + '/js/maps')))
+        .pipe(gulpif(isDev, gulp.dest(conf.dest + '/scripts')))
+        .pipe(gulpif(isProd, gulp.dest(conf.dest)))
+        .pipe(gulpif(isDev, sourcemaps.write(conf.dest + '/scripts/maps')))
         .pipe(browserSync.reload({ stream: true }))
         .pipe(livereload())
 }
 
 function html() {
     return gulp.src(html_files)
-
-    .pipe(gulp.dest(conf.dest))
+        .pipe(gulp.dest(conf.dest))
         .pipe(browserSync.reload({ stream: true }))
         .pipe(livereload())
 }
@@ -96,13 +97,19 @@ gulp.task('watch', ['setDev', 'build', 'browser_sync'], function() {
     gulp.watch(js_files, ['js'])
 })
 
-gulp.task('build', ['removedist', 'js', 'html'], function() {
-    gulp.src([
-        'app/.htaccess',
-    ]).pipe(gulp.dest(conf.dest))
+gulp.task('build', ['removedist', 'livereload2build', 'js'], function() {
 
 })
 
+function livereload2build() {
+    if (isDev) {
+        return gulp.src([
+                conf.src + '/livereload.js',
+                conf.src + '/index.html',
+            ])
+            .pipe(gulp.dest(conf.dest))
+    }
+}
 
 function removedist() {
     try {
@@ -122,6 +129,7 @@ gulp.task('browser_sync', browser_sync)
 gulp.task('js', js)
 gulp.task('html', html)
 gulp.task('removedist', removedist)
+gulp.task('livereload2build', livereload2build)
 gulp.task('setDev', setDev)
 
 
